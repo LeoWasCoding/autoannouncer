@@ -201,7 +201,7 @@ class AutoAnnouncer extends PluginBase {
             return;
         }
 
-        $form = new \jojoe77777\FormAPI\CustomForm(function(Player $p, ?array $data) use ($allMessages) {
+        $form = new \jojoe77777\FormAPI\CustomForm(function(Player $p, ?array $data) {
             if ($data===null) return;
             $idx = (int)($data[0] ?? 0);
             $rawText = (string)($data[1] ?? "");
