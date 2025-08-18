@@ -1,10 +1,10 @@
 ---
-# Configuration for AutoAnnouncer plugin
 # (!) DO NOT CHANGE (!)
-version: 1.0.1
+version: 2.1.0
 
 settings:
-  # Sound to play for each announcement.
+  # Default sound to play for each announcement.
+  # Use '' (empty string) to disable.
   # Use this for a list of available sounds: https://wiki.bedrock.dev/documentation/sound-definitions.html
   sound: 'random.levelup'
 
@@ -24,12 +24,27 @@ settings:
   random: true
 
 # List of messages to be broadcasted
-# Use '&' for colors.
+# Each message block supports:
+#   - text: array of lines (use '&' for colors)
+#   - sound: optional sound (overrides default); set '' to disable for this message
+#   - temporary: if true, message will only cycle until removed or expired
+#   - cycles: number of times to broadcast this message if temporary (ignored if temporary=false)
 messages:
-  - message:
+  - text:
       - "&r&aWelcome to the server!"
-      - "&r&7read /rules!"
-  - message:
+      - "&r&7Read /rules!"
+    sound: 'random.toast'
+    temporary: false
+    cycles: 0
+
+  - text:
       - "&r&7Enjoy your stay!"
-  - message:
+    sound: ''
+    temporary: false
+    cycles: 0
+
+  - text:
       - "&r&6Visit our website at example.com"
+    sound: 'note.pling'
+    temporary: true
+    cycles: 5
