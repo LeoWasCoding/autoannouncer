@@ -1,11 +1,15 @@
 ---
 name: AutoAnnouncer
 main: wock\announcer\AutoAnnouncer
-api:
-- 5.0.0
-version: 2.0.0
+api: [5.0.0]
+version: 2.1.0
 author: wockgod
+
 permissions:
   autoannouncer.reload:
     default: op
+    description: Allows reloading AutoAnnouncer config
+  autoannouncer.manage:
+    default: op
+    description: Allows managing announcements in-game
 ...
