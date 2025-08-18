@@ -1,0 +1,35 @@
+---
+# Configuration for AutoAnnouncer plugin
+# (!) DO NOT CHANGE (!)
+version: 1.0.1
+
+settings:
+  # Sound to play for each announcement.
+  # Use this for a list of available sounds: https://wiki.bedrock.dev/documentation/sound-definitions.html
+  sound: 'random.levelup'
+
+  # The prefix message
+  # Use '&' for colors
+  prefix: "&r&8[&aAA&8] "
+
+  # enable/disable the use of prefixes.
+  # true = on, false = off
+  use-prefix: true
+
+  # Interval between each message in seconds
+  interval: 60
+
+  # If the messages should be sent in order they're formatted in
+  # or if they should send at random.
+  random: true
+
+# List of messages to be broadcasted
+# Use '&' for colors.
+messages:
+  - message:
+      - "&r&aWelcome to the server!"
+      - "&r&7read /rules!"
+  - message:
+      - "&r&7Enjoy your stay!"
+  - message:
+      - "&r&6Visit our website at example.com"
