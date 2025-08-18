@@ -7,12 +7,7 @@ use wock\announcer\AutoAnnouncer;
 
 class AnnounceTask extends Task {
 
-    /** @var AutoAnnouncer */
-    private AutoAnnouncer $plugin;
-
-    public function __construct(AutoAnnouncer $plugin) {
-        $this->plugin = $plugin;
-    }
+    public function __construct(private readonly AutoAnnouncer $plugin) {}
 
     public function onRun(): void {
         $this->plugin->broadcastNextMessage();
