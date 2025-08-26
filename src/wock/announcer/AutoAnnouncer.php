@@ -217,18 +217,19 @@ class AutoAnnouncer extends PluginBase {
             $enableSound = (bool)($data[2] ?? true);
             $customSound = trim((string)($data[3] ?? ""));
         
-            // If the user left the edit input blank, fall back to the selected announcement's existing text
             if ($rawText === "") {
-                $rawText = implode("\n", $allMessages[$idx]['message'] ?? []);
+                $rawText = implode("\n", $allMessages[$idx]['message']);
             }
         
-            // If custom sound left blank, prefer the existing sound name for that announcement (unless the user intentionally left it blank)
-            if ($customSound === "" && isset($allMessages[$idx]['sound_name'])) {
-                $customSound = $allMessages[$idx]['sound_name'] ?? "";
+            if ($customSound === "" && array_key_exists('sound_name', $allMessages[$idx])) {
+                $customSound = (string)$allMessages[$idx]['sound_name'];
             }
         
             $lines = array_values(array_filter(array_map(static fn($s) => trim($s), preg_split('/\\\\n/', $rawText)), static fn($s) => $s !== ""));
-            if (empty($lines)) { $p->sendMessage(C::RED."[AutoAnnouncer] Enter at least one line."); return; }
+            if (empty($lines)) {
+                $p->sendMessage(C::RED."[AutoAnnouncer] Enter at least one line.");
+                return;
+            }
         
             if ($idx < count($this->runtimeMessages)) {
                 $this->runtimeMessages[$idx]['message'] = $lines;
@@ -244,20 +245,20 @@ class AutoAnnouncer extends PluginBase {
                     $this->saveTemporary();
                 }
             }
+        
             $p->sendMessage(C::GREEN."[AutoAnnouncer] Announcement updated!");
         });
         
-        // build options and defaults
+        // build options and defaults (allMessages is non-empty here because of earlier check)
         $options = [];
         foreach ($allMessages as $msg) {
             $options[] = $msg['type']." — ".implode(" | ", array_slice($msg['message'], 0, 3)).(count($msg['message']) > 3 ? "..." : "");
         }
         
-        // Default values based on the first announcement so the form isn't blank
         $first = $allMessages[0];
-        $defaultText = implode("\n", $first['message'] ?? []);
-        $defaultEnable = $first['enable_sound'] ?? true;
-        $defaultSound = $first['sound_name'] ?? "";
+        $defaultText = implode("\n", $first['message']);
+        $defaultEnable = $first['enable_sound'];
+        $defaultSound = (string)$first['sound_name'];
         
         $form->setTitle("AutoAnnouncer — Edit");
         $form->addDropdown("Select announcement", $options);
