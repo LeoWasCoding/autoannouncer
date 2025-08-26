@@ -13,7 +13,7 @@ use wock\announcer\Tasks\AnnounceTask;
 
 class AutoAnnouncer extends PluginBase {
 
-    private const CONFIG_VERSION = "1.2.0";
+    private const CONFIG_VERSION = "2.1.0";
 
     /** @var string[][]|array messages from config */
     public array $messages = [];
@@ -68,8 +68,16 @@ class AutoAnnouncer extends PluginBase {
         $combined = [];
 
         foreach ($this->messages as $i => $entry) {
-            $lines = $entry['message'] ?? [];
-            if (!empty($lines)) $combined[] = ['src'=>'config','idx'=>$i,'message'=>$lines,'enable_sound'=>$this->enableSound,'sound_name'=>$this->soundName];
+            $lines = $entry['message'] ?? $entry['text'] ?? [];
+            if (!empty($lines)) {
+                $combined[] = [
+                    'src' => 'config',
+                    'idx' => $i,
+                    'message' => $lines,
+                    'enable_sound' => $this->enableSound,
+                    'sound_name' => $entry['sound'] ?? $this->soundName
+                ];
+            }
         }
         foreach ($this->runtimeMessages as $i => $entry) {
             $combined[] = ['src'=>'runtime','idx'=>$i,'message'=>$entry['message'],'enable_sound'=>$entry['enable_sound'],'sound_name'=>$entry['sound_name']];
@@ -201,7 +209,7 @@ class AutoAnnouncer extends PluginBase {
             return;
         }
 
-        $form = new \jojoe77777\FormAPI\CustomForm(function(Player $p, ?array $data) {
+        $form = new \jojoe77777\FormAPI\CustomForm(function(Player $p, ?array $data) use ($allMessages) {
             if ($data===null) return;
             $idx = (int)($data[0] ?? 0);
             $rawText = (string)($data[1] ?? "");
