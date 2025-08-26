@@ -211,61 +211,59 @@ class AutoAnnouncer extends PluginBase {
 
         $form = new \jojoe77777\FormAPI\CustomForm(function(Player $p, ?array $data) use ($allMessages) {
             if ($data === null) return;
+        
             $idx = (int)($data[0] ?? 0);
             $rawText = (string)($data[1] ?? "");
             $enableSound = (bool)($data[2] ?? true);
             $customSound = trim((string)($data[3] ?? ""));
         
-            // split on \n and remove blanks
-            $lines = array_values(array_filter(array_map(
-                static fn($s) => trim($s),
-                preg_split('/\\\\n/', $rawText)
-            ), static fn($s) => $s !== ""));
-        
-            if (empty($lines)) {
-                $p->sendMessage(C::RED."[AutoAnnouncer] Enter at least one line.");
-                return;
+            // If the user left the edit input blank, fall back to the selected announcement's existing text
+            if ($rawText === "") {
+                $rawText = implode("\n", $allMessages[$idx]['message'] ?? []);
             }
+        
+            // If custom sound left blank, prefer the existing sound name for that announcement (unless the user intentionally left it blank)
+            if ($customSound === "" && isset($allMessages[$idx]['sound_name'])) {
+                $customSound = $allMessages[$idx]['sound_name'] ?? "";
+            }
+        
+            $lines = array_values(array_filter(array_map(static fn($s) => trim($s), preg_split('/\\\\n/', $rawText)), static fn($s) => $s !== ""));
+            if (empty($lines)) { $p->sendMessage(C::RED."[AutoAnnouncer] Enter at least one line."); return; }
         
             if ($idx < count($this->runtimeMessages)) {
                 $this->runtimeMessages[$idx]['message'] = $lines;
                 $this->runtimeMessages[$idx]['enable_sound'] = $enableSound;
-                $this->runtimeMessages[$idx]['sound_name'] = $customSound;
+                $this->runtimeMessages[$idx]['sound_name'] = $customSound !== "" ? $customSound : null;
                 $this->saveRuntime();
             } else {
                 $tmpIdx = $idx - count($this->runtimeMessages);
                 if (isset($this->tempMessages[$tmpIdx])) {
                     $this->tempMessages[$tmpIdx]['message'] = $lines;
                     $this->tempMessages[$tmpIdx]['enable_sound'] = $enableSound;
-                    $this->tempMessages[$tmpIdx]['sound_name'] = $customSound;
+                    $this->tempMessages[$tmpIdx]['sound_name'] = $customSound !== "" ? $customSound : null;
                     $this->saveTemporary();
                 }
             }
             $p->sendMessage(C::GREEN."[AutoAnnouncer] Announcement updated!");
         });
         
-        // ===== Form Setup =====
-        $form->setTitle("AutoAnnouncer — Edit");
-        
-        // config awareness
-        $prefix = $this->config->getNested("settings.prefix", "");
-        $usePrefix = (bool)$this->config->getNested("settings.use-prefix", true);
-        
+        // build options and defaults
         $options = [];
         foreach ($allMessages as $msg) {
-            $previewLines = implode(" | ", array_slice($msg['message'], 0, 3));
-            if (count($msg['message']) > 3) {
-                $previewLines .= "...";
-            }
-            // include prefix in preview only if enabled
-            $preview = ($usePrefix ? $prefix : "") . $previewLines;
-            $options[] = $msg['type'] . " — " . $preview;
+            $options[] = $msg['type']." — ".implode(" | ", array_slice($msg['message'], 0, 3)).(count($msg['message']) > 3 ? "..." : "");
         }
         
+        // Default values based on the first announcement so the form isn't blank
+        $first = $allMessages[0];
+        $defaultText = implode("\n", $first['message'] ?? []);
+        $defaultEnable = $first['enable_sound'] ?? true;
+        $defaultSound = $first['sound_name'] ?? "";
+        
+        $form->setTitle("AutoAnnouncer — Edit");
         $form->addDropdown("Select announcement", $options);
-        $form->addInput("Edit text (use \\n for new lines)");
-        $form->addToggle("Enable sound?", true);
-        $form->addInput("Custom sound (optional)", "");
+        $form->addInput("Edit text (use \\n for new lines)", $defaultText);
+        $form->addToggle("Enable sound?", $defaultEnable);
+        $form->addInput("Custom sound (optional)", $defaultSound);
         $player->sendForm($form);
     }
 
