@@ -210,37 +210,58 @@ class AutoAnnouncer extends PluginBase {
         }
 
         $form = new \jojoe77777\FormAPI\CustomForm(function(Player $p, ?array $data) use ($allMessages) {
-            if ($data===null) return;
+            if ($data === null) return;
             $idx = (int)($data[0] ?? 0);
             $rawText = (string)($data[1] ?? "");
             $enableSound = (bool)($data[2] ?? true);
             $customSound = trim((string)($data[3] ?? ""));
-
-            $lines = array_values(array_filter(array_map(static fn($s)=>trim($s), preg_split('/\\\\n/', $rawText)), static fn($s)=>$s!==""));
-            if (empty($lines)) { $p->sendMessage(C::RED."[AutoAnnouncer] Enter at least one line."); return; }
-
+        
+            // split on \n and remove blanks
+            $lines = array_values(array_filter(array_map(
+                static fn($s) => trim($s),
+                preg_split('/\\\\n/', $rawText)
+            ), static fn($s) => $s !== ""));
+        
+            if (empty($lines)) {
+                $p->sendMessage(C::RED."[AutoAnnouncer] Enter at least one line.");
+                return;
+            }
+        
             if ($idx < count($this->runtimeMessages)) {
-                $this->runtimeMessages[$idx]['message']=$lines;
-                $this->runtimeMessages[$idx]['enable_sound']=$enableSound;
-                $this->runtimeMessages[$idx]['sound_name']=$customSound;
+                $this->runtimeMessages[$idx]['message'] = $lines;
+                $this->runtimeMessages[$idx]['enable_sound'] = $enableSound;
+                $this->runtimeMessages[$idx]['sound_name'] = $customSound;
                 $this->saveRuntime();
             } else {
                 $tmpIdx = $idx - count($this->runtimeMessages);
-                if(isset($this->tempMessages[$tmpIdx])){
-                    $this->tempMessages[$tmpIdx]['message']=$lines;
-                    $this->tempMessages[$tmpIdx]['enable_sound']=$enableSound;
-                    $this->tempMessages[$tmpIdx]['sound_name']=$customSound;
+                if (isset($this->tempMessages[$tmpIdx])) {
+                    $this->tempMessages[$tmpIdx]['message'] = $lines;
+                    $this->tempMessages[$tmpIdx]['enable_sound'] = $enableSound;
+                    $this->tempMessages[$tmpIdx]['sound_name'] = $customSound;
                     $this->saveTemporary();
                 }
             }
             $p->sendMessage(C::GREEN."[AutoAnnouncer] Announcement updated!");
         });
-
+        
+        // ===== Form Setup =====
         $form->setTitle("AutoAnnouncer — Edit");
+        
+        // config awareness
+        $prefix = $this->config->getNested("settings.prefix", "");
+        $usePrefix = (bool)$this->config->getNested("settings.use-prefix", true);
+        
         $options = [];
         foreach ($allMessages as $msg) {
-            $options[] = $msg['type']." — ".implode(" | ", array_slice($msg['message'],0,3)).(count($msg['message'])>3 ? "..." : "");
+            $previewLines = implode(" | ", array_slice($msg['message'], 0, 3));
+            if (count($msg['message']) > 3) {
+                $previewLines .= "...";
+            }
+            // include prefix in preview only if enabled
+            $preview = ($usePrefix ? $prefix : "") . $previewLines;
+            $options[] = $msg['type'] . " — " . $preview;
         }
+        
         $form->addDropdown("Select announcement", $options);
         $form->addInput("Edit text (use \\n for new lines)");
         $form->addToggle("Enable sound?", true);
